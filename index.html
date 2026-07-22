@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0d3b2b">
+    <title>The Fern Vadodara - Guest Information</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            position: relative;
+            overflow: hidden;
+            max-width: 430px;
+            margin: 0 auto;
+            box-shadow: 0 0 40px rgba(0,0,0,0.2);
+        }
+
+        /* Animated BG image via pseudo-element */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            background: url('bg-room.jpg') center center / cover no-repeat;
+            animation: bgZoom 20s ease-in-out infinite alternate;
+            z-index: -3;
+        }
+        @keyframes bgZoom {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.08); }
+            100% { transform: scale(1.03); }
+        }
+
+        /* Dark overlay */
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(10, 35, 20, 0.4) 0%,
+                rgba(10, 35, 20, 0.25) 40%,
+                rgba(10, 35, 20, 0.45) 100%
+            );
+            z-index: -2;
+        }
+
+        #leafCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .orb-1 {
+            width: 300px; height: 300px;
+            background: #2e7d32;
+            top: -80px; left: -60px;
+            animation: orbFloat1 8s ease-in-out infinite;
+        }
+        .orb-2 {
+            width: 350px; height: 350px;
+            background: #66bb6a;
+            bottom: -100px; right: -80px;
+            animation: orbFloat2 10s ease-in-out infinite;
+        }
+        .orb-3 {
+            width: 200px; height: 200px;
+            background: #c9a84c;
+            top: 50%; left: 60%;
+            animation: orbFloat3 7s ease-in-out infinite;
+            opacity: 0.12;
+        }
+        @keyframes orbFloat1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, 30px) scale(1.15); }
+        }
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-50px, -40px) scale(1.2); }
+        }
+        @keyframes orbFloat3 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-30px, 20px) scale(1.1); }
+            66% { transform: translate(20px, -30px) scale(0.9); }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: #c9a84c;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            animation: sparkleAnim 3s ease-in-out infinite;
+        }
+        .sparkle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 70%; left: 80%; animation-delay: 0.5s; }
+        .sparkle:nth-child(3) { top: 40%; left: 90%; animation-delay: 1s; }
+        .sparkle:nth-child(4) { top: 80%; left: 10%; animation-delay: 1.5s; }
+        .sparkle:nth-child(5) { top: 10%; left: 60%; animation-delay: 2s; }
+        .sparkle:nth-child(6) { top: 55%; left: 25%; animation-delay: 2.5s; }
+        .sparkle:nth-child(7) { top: 30%; left: 75%; animation-delay: 0.8s; }
+        .sparkle:nth-child(8) { top: 85%; left: 50%; animation-delay: 1.8s; }
+        @keyframes sparkleAnim {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1.5); box-shadow: 0 0 10px #c9a84c; }
+        }
+
+        .gold-curve { position: absolute; pointer-events: none; z-index: 1; }
+        .gold-curve-bottom-left { bottom: 0; left: 0; width: 300px; height: 200px; }
+        .gold-curve-bottom-right { bottom: 0; right: 0; width: 300px; height: 200px; }
+
+        .scene {
+            perspective: 1200px;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 520px;
+            margin: 12px;
+        }
+
+        .main-container {
+            position: relative;
+            width: 100%;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+            transform-origin: center center;
+        }
+
+        /* Card exit: smooth shrink + fade + slight tilt */
+        .main-container.flipping {
+            animation: cardExit 0.5s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+        }
+        @keyframes cardExit {
+            0%   { transform: scale(1) rotateX(0deg); opacity: 1; filter: blur(0); }
+            50%  { transform: scale(0.85) rotateX(8deg); opacity: 0.6; filter: blur(1px); }
+            100% { transform: scale(0.6) rotateX(15deg) translateY(30px); opacity: 0; filter: blur(4px); }
+        }
+
+        /* Card return: smooth grow + fade in */
+        .main-container.unflipping {
+            animation: cardEnter 0.6s cubic-bezier(0, 0.55, 0.45, 1) forwards;
+        }
+        @keyframes cardEnter {
+            0%   { transform: scale(0.6) rotateX(-15deg) translateY(30px); opacity: 0; filter: blur(4px); }
+            50%  { transform: scale(0.9) rotateX(-5deg); opacity: 0.7; filter: blur(1px); }
+            100% { transform: scale(1) rotateX(0deg); opacity: 1; filter: blur(0); }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            padding: 32px 24px 24px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backface-visibility: hidden;
+            animation: cardEntry 1s ease-out;
+            overflow: hidden;
+        }
+        @keyframes cardEntry {
+            0% { transform: translateY(40px) scale(0.9); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -50%; right: -50%;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%);
+            border-radius: 24px 24px 50% 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes shimmer {
+            0% { background-position: 100% 0%; }
+            100% { background-position: -100% 100%; }
+        }
+
+        .header { text-align: center; margin-bottom: 22px; }
+        .logo-section {
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 6px;
+        }
+        .fern-logo {
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 12px;
+            padding: 4px 8px;
+            box-shadow:
+                0 4px 16px rgba(0,0,0,0.15),
+                0 1px 0 rgba(255,255,255,0.3) inset;
+            backdrop-filter: blur(8px);
+        }
+        .fern-logo-img {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+        @keyframes leafSway {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+        /* Marriott badge removed */
+
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px; font-weight: 700;
+            color: #ffffff; margin-top: 10px; letter-spacing: 1px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            animation: titleFade 1.2s ease-out;
+        }
+        @keyframes titleFade {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .subtitle {
+            font-size: 12px; color: #ddd; margin-top: 4px; font-weight: 400;
+            animation: titleFade 1.4s ease-out;
+        }
+
+        .buttons-section { display: flex; gap: 14px; margin-bottom: 22px; }
+        .action-btn {
+            flex: 1;
+            background: linear-gradient(160deg, #1a5c3a 0%, #0d3b2b 30%, #0a2e20 70%, #0d3b2b 100%);
+            border: none;
+            border-radius: 18px;
+            padding: 24px 12px 20px;
+            cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            box-shadow:
+                0 6px 0 #061a12,
+                0 8px 12px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+            transform: translateY(0);
+        }
+        /* 3D shine highlight */
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 45%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 60%, transparent 100%);
+            border-radius: 18px 18px 50% 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* Ripple glow on hover */
+        .action-btn::after {
+            content: '';
+            position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: radial-gradient(circle, rgba(201,168,76,0.35) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+        .action-btn:hover::after { width: 280px; height: 280px; }
+        .action-btn:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 10px 0 #061a12,
+                0 14px 30px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.15),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+        }
+        .action-btn:active {
+            transform: translateY(4px);
+            box-shadow:
+                0 2px 0 #061a12,
+                0 3px 8px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.05),
+                inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .action-btn:active::after { width: 200px; height: 200px; }
+        .action-btn.pressed { animation: btnPress3D 0.3s ease; }
+        @keyframes btnPress3D {
+            0%   { transform: translateY(0); }
+            40%  { transform: translateY(4px); }
+            100% { transform: translateY(0); }
+        }
+
+        .icon-circle {
+            width: 56px; height: 56px;
+            border: 2.5px solid #c9a84c; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 2;
+            transition: all 0.3s ease;
+            background: radial-gradient(circle at 30% 30%, rgba(201,168,76,0.15) 0%, transparent 60%);
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .action-btn:hover .icon-circle {
+            border-color: #e0c068;
+            box-shadow:
+                0 0 20px rgba(201,168,76,0.4),
+                0 4px 12px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+            transform: rotateY(360deg) scale(1.05);
+            transition: transform 0.6s ease, box-shadow 0.3s ease;
+        }
+        .icon-circle svg { width: 26px; height: 26px; color: #ffd700; filter: drop-shadow(0 1px 3px rgba(255,215,0,0.5)) drop-shadow(0 0 8px rgba(201,168,76,0.3)); }
+        .btn-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px; font-weight: 700; color: #ffffff;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            position: relative; z-index: 2;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .btn-decoration {
+            display: flex; align-items: center; gap: 6px;
+            position: relative; z-index: 2;
+        }
+        .btn-decoration .line { width: 20px; height: 1px; background: #c9a84c; }
+        .btn-decoration .dot { width: 4px; height: 4px; background: #c9a84c; border-radius: 50%; }
+
+        .footer { text-align: center; }
+        .eco-msg {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; font-size: 12px; color: #c8e6c9;
+            font-weight: 500; margin-bottom: 12px;
+        }
+        .eco-msg svg { width: 16px; height: 16px; animation: leafBounce 2s ease-in-out infinite; }
+        @keyframes leafBounce {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-3px) rotate(5deg); }
+        }
+        .thank-you {
+            font-family: 'Great Vibes', cursive;
+            font-size: 20px; color: #ffffff;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .footer-motif { margin-top: 12px; display: flex; justify-content: center; }
+        .footer-motif svg { width: 40px; height: 20px; color: #c9a84c; }
+
+        /* PDF Overlay */
+        .pdf-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+        }
+        .pdf-overlay.active {
+            display: flex;
+            flex-direction: column;
+            animation: overlayIn 0.5s cubic-bezier(0, 0.55, 0.45, 1) forwards;
+        }
+        .pdf-overlay.closing {
+            animation: overlayOut 0.4s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+        }
+        @keyframes overlayIn {
+            0%   { opacity: 0; transform: translateY(60px) scale(0.95); }
+            60%  { opacity: 0.8; transform: translateY(-5px) scale(1.01); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes overlayOut {
+            0%   { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(60px) scale(0.95); }
+        }
+
+        .pdf-overlay-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+        }
+
+        .pdf-toolbar {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            padding-top: max(10px, env(safe-area-inset-top));
+            background: linear-gradient(135deg, #0d3b2b, #14472f);
+            border-bottom: 2px solid #c9a84c;
+        }
+        .pdf-title {
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .pdf-close-btn {
+            background: rgba(201, 168, 76, 0.2);
+            border: 1.5px solid #c9a84c;
+            color: #c9a84c;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 44px;
+        }
+        .pdf-close-btn:hover {
+            background: #c9a84c;
+            color: #0d3b2b;
+            transform: scale(1.05);
+        }
+        .pdf-close-btn svg { width: 16px; height: 16px; }
+
+        .pdf-viewer {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            width: 100%;
+        }
+        .pdf-viewer iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .pdf-loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            text-align: center;
+            color: #c9a84c;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 3px solid rgba(201,168,76,0.2);
+            border-top-color: #c9a84c;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Small phones (320-374px) */
+        @media (max-width: 374px) {
+            .scene { margin: 8px; }
+            .card { padding: 20px 14px 18px; border-radius: 16px; }
+            .title { font-size: 18px; }
+            .subtitle { font-size: 11px; }
+            .fern-logo-img { height: 65px; }
+            .fern-logo { padding: 3px 6px; border-radius: 8px; }
+            .buttons-section { gap: 10px; }
+            .action-btn { padding: 18px 8px 14px; border-radius: 12px; }
+            .icon-circle { width: 44px; height: 44px; }
+            .icon-circle svg { width: 20px; height: 20px; }
+            .btn-label { font-size: 9px; letter-spacing: 1px; }
+            .thank-you { font-size: 18px; }
+            .eco-msg { font-size: 11px; }
+            .pdf-title { font-size: 11px; letter-spacing: 1px; }
+            .pdf-close-btn { padding: 8px 14px; font-size: 11px; }
+        }
+
+        /* Regular phones (375-480px) */
+        @media (min-width: 375px) and (max-width: 480px) {
+            .scene { margin: 12px; }
+            .card { padding: 26px 18px 20px; }
+            .title { font-size: 20px; }
+            .fern-logo-img { height: 78px; }
+            .fern-logo { padding: 4px 6px; }
+            .buttons-section { gap: 12px; }
+            .action-btn { padding: 20px 10px 16px; }
+            .icon-circle { width: 48px; height: 48px; }
+            .icon-circle svg { width: 22px; height: 22px; }
+            .btn-label { font-size: 10px; }
+        }
+
+        /* Tablets (481-768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .scene { max-width: 480px; margin: 20px auto; }
+            .card { padding: 36px 28px 26px; }
+        }
+
+        /* Desktop (769px+) */
+        @media (min-width: 769px) {
+            .scene { max-width: 520px; margin: 20px auto; }
+            .card { padding: 40px 30px 30px; }
+            .fern-logo-img { height: 95px; }
+            .fern-logo { padding: 5px 10px; }
+            .title { font-size: 26px; }
+            .icon-circle { width: 60px; height: 60px; }
+            .icon-circle svg { width: 28px; height: 28px; }
+            .btn-label { font-size: 11px; }
+            .action-btn { padding: 28px 16px 24px; gap: 14px; }
+            .buttons-section { gap: 16px; margin-bottom: 30px; }
+            .header { margin-bottom: 30px; }
+            .thank-you { font-size: 22px; }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .card { padding: 16px 18px 14px; }
+            .header { margin-bottom: 12px; }
+            .title { font-size: 18px; margin-top: 6px; }
+            .subtitle { font-size: 11px; }
+            .buttons-section { margin-bottom: 12px; }
+            .action-btn { padding: 14px 10px 12px; gap: 6px; }
+            .icon-circle { width: 40px; height: 40px; }
+            .icon-circle svg { width: 18px; height: 18px; }
+            .btn-label { font-size: 9px; }
+            .thank-you { font-size: 16px; }
+            .footer-motif { margin-top: 6px; }
+            .eco-msg { margin-bottom: 6px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+
+    <canvas id="leafCanvas"></canvas>
+
+    <svg class="gold-curve gold-curve-bottom-left" viewBox="0 0 300 200" fill="none">
+        <path d="M0 200 Q50 100 150 120 Q250 140 300 50" stroke="#c9a84c" stroke-width="2" fill="none" opacity="0.4"/>
+        <path d="M0 180 Q80 80 180 110 Q260 130 300 30" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.25"/>
+    </svg>
+    <svg class="gold-curve gold-curve-bottom-right" viewBox="0 0 300 200" fill="none">
+        <path d="M300 200 Q250 100 150 120 Q50 140 0 50" stroke="#c9a84c" stroke-width="2" fill="none" opacity="0.4"/>
+        <path d="M300 180 Q220 80 120 110 Q40 130 0 30" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.25"/>
+    </svg>
+
+    <div class="scene">
+        <div class="main-container" id="mainCard">
+            <div class="card">
+                <div class="header">
+                    <div class="logo-section">
+                        <div class="fern-logo">
+                            <img src="thefern_vadodara.png" alt="The Fern Vadodara" class="fern-logo-img">
+                        </div>
+                    </div>
+                    <h1 class="title">GUEST INFORMATION</h1>
+                    <p class="subtitle">Please select an option below.</p>
+                </div>
+
+                <div class="buttons-section">
+                    <button class="action-btn" onclick="openPDF('RoomDirectory.pdf', 'Room Directory')">
+                        <div class="icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                            </svg>
+                        </div>
+                        <span class="btn-label">ROOM DIRECTORY</span>
+                        <div class="btn-decoration">
+                            <span class="line"></span><span class="dot"></span><span class="line"></span>
+                        </div>
+                    </button>
+
+                    <button class="action-btn" onclick="openPDF('Dinner Buffet.pdf', 'In-Room Dining')">
+                        <div class="icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 18h18"/>
+                                <path d="M4 18V14a8 8 0 0 1 16 0v4"/>
+                                <path d="M12 4v2"/>
+                                <path d="M12 4c-1-1-2-2-2-2"/>
+                                <path d="M12 4c1-1 2-2 2-2"/>
+                                <line x1="2" y1="21" x2="22" y2="21"/>
+                            </svg>
+                        </div>
+                        <span class="btn-label">IN-ROOM DINING</span>
+                        <div class="btn-decoration">
+                            <span class="line"></span><span class="dot"></span><span class="line"></span>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="footer">
+                    <div class="eco-msg">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66L7 18h2l1 3h2l1-3h2l1.27 3.34 1.89-.66C15.1 16.17 13 10 17 8z"/>
+                            <path d="M17 8c1-2 1-3 1-3s-1 .5-3 1c-1 .5-2 1-3 2.5"/>
+                        </svg>
+                        <span>Go Paperless. Go Green.</span>
+                    </div>
+                    <p class="thank-you">Thank You For Staying With Us.</p>
+                    <div class="footer-motif">
+                        <svg viewBox="0 0 60 24" fill="currentColor">
+                            <path d="M30 12 C25 8 18 6 10 8 C12 10 15 12 20 12 C15 12 12 14 10 16 C18 18 25 16 30 12Z"/>
+                            <path d="M30 12 C35 8 42 6 50 8 C48 10 45 12 40 12 C45 12 48 14 50 16 C42 18 35 16 30 12Z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Overlay -->
+    <div class="pdf-overlay" id="pdfOverlay">
+        <div class="pdf-overlay-bg"></div>
+        <div class="pdf-toolbar">
+            <span class="pdf-title" id="pdfTitle">Document</span>
+            <button class="pdf-close-btn" onclick="closePDF()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M19 12H5M12 5l-7 7 7 7"/>
+                </svg>
+                BACK
+            </button>
+        </div>
+        <div class="pdf-viewer">
+            <div class="pdf-loading" id="pdfLoading">
+                <div class="spinner"></div>
+                <p>Loading PDF...</p>
+            </div>
+            <iframe id="pdfFrame" src="" onload="document.getElementById('pdfLoading').style.display='none'"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Floating Leaves Animation
+        const canvas = document.getElementById('leafCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Leaf {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -30 - Math.random() * 100;
+                this.size = 8 + Math.random() * 16;
+                this.speedY = 0.3 + Math.random() * 0.8;
+                this.speedX = -0.5 + Math.random() * 1;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotSpeed = (-0.02 + Math.random() * 0.04);
+                this.opacity = 0.15 + Math.random() * 0.2;
+                this.swayAmp = 0.5 + Math.random() * 1.5;
+                this.swayFreq = 0.01 + Math.random() * 0.02;
+                this.time = Math.random() * 100;
+                this.type = Math.floor(Math.random() * 3);
+            }
+            update() {
+                this.time += 1;
+                this.y += this.speedY;
+                this.x += this.speedX + Math.sin(this.time * this.swayFreq) * this.swayAmp;
+                this.rotation += this.rotSpeed;
+                if (this.y > canvas.height + 40) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = '#2e7d32';
+                if (this.type === 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.size);
+                    ctx.bezierCurveTo(this.size * 0.8, -this.size * 0.5, this.size * 0.8, this.size * 0.5, 0, this.size);
+                    ctx.bezierCurveTo(-this.size * 0.8, this.size * 0.5, -this.size * 0.8, -this.size * 0.5, 0, -this.size);
+                    ctx.fill();
+                } else if (this.type === 1) {
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.size * 0.6, this.size, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.size);
+                    ctx.quadraticCurveTo(this.size * 0.6, 0, 0, this.size);
+                    ctx.quadraticCurveTo(-this.size * 0.6, 0, 0, -this.size);
+                    ctx.fill();
+                }
+                ctx.strokeStyle = '#1b5e20';
+                ctx.lineWidth = 0.5;
+                ctx.globalAlpha = this.opacity * 0.5;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size * 0.8);
+                ctx.lineTo(0, this.size * 0.8);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        const isMobile = window.innerWidth <= 768;
+        const leaves = Array.from({ length: isMobile ? 10 : 20 }, () => {
+            const l = new Leaf();
+            l.y = Math.random() * canvas.height;
+            return l;
+        });
+
+        function animateLeaves() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            leaves.forEach(leaf => { leaf.update(); leaf.draw(); });
+            requestAnimationFrame(animateLeaves);
+        }
+        animateLeaves();
+
+        // PDF Open/Close with Flip Animation
+        const mainCard = document.getElementById('mainCard');
+        const pdfOverlay = document.getElementById('pdfOverlay');
+        const pdfFrame = document.getElementById('pdfFrame');
+        const pdfTitle = document.getElementById('pdfTitle');
+        const pdfLoading = document.getElementById('pdfLoading');
+        let isAnimating = false;
+
+        function openPDF(fileName, title) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            event.currentTarget.classList.add('pressed');
+            setTimeout(() => event.currentTarget.classList.remove('pressed'), 300);
+
+            pdfTitle.textContent = title;
+            pdfLoading.style.display = 'block';
+            pdfFrame.src = fileName;
+
+            // Card exit animation
+            mainCard.classList.add('flipping');
+
+            // Show PDF overlay after card starts exiting
+            setTimeout(() => {
+                pdfOverlay.classList.add('active');
+            }, 350);
+
+            // Hide card after animation completes
+            setTimeout(() => {
+                mainCard.style.display = 'none';
+                mainCard.classList.remove('flipping');
+                isAnimating = false;
+            }, 600);
+        }
+
+        function closePDF() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            // Close overlay with slide down
+            pdfOverlay.classList.add('closing');
+            pdfFrame.src = '';
+
+            setTimeout(() => {
+                pdfOverlay.classList.remove('active', 'closing');
+
+                // Card enters back
+                mainCard.style.display = 'block';
+                mainCard.classList.add('unflipping');
+
+                setTimeout(() => {
+                    mainCard.classList.remove('unflipping');
+                    isAnimating = false;
+                }, 650);
+            }, 400);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePDF();
+        });
+
+        // Swipe down to close PDF on mobile
+        let touchStartY = 0;
+        const pdfViewer = document.querySelector('.pdf-viewer');
+        pdfViewer.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        pdfViewer.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].clientY;
+            const diff = touchEndY - touchStartY;
+            if (diff > 100 && !isAnimating) closePDF();
+        }, { passive: true });
+    </script>
+</body>
+</html>
