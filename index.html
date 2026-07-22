@@ -260,6 +260,8 @@
             position: relative; overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
+            text-decoration: none;
+            color: #fff;
             box-shadow:
                 0 6px 0 #061a12,
                 0 8px 12px rgba(0,0,0,0.3),
@@ -451,10 +453,12 @@
             flex: 1;
             width: 100%;
         }
-        .pdf-viewer iframe {
+        .pdf-viewer iframe,
+        .pdf-viewer embed {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
 
         .pdf-loading {
@@ -594,7 +598,7 @@
                 </div>
 
                 <div class="buttons-section">
-                    <button class="action-btn" onclick="openPDF('RoomDirectory.pdf', 'Room Directory')">
+                    <a href="RoomDirectory.pdf" class="action-btn" data-label="ROOM DIRECTORY">
                         <div class="icon-circle">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
@@ -605,9 +609,9 @@
                         <div class="btn-decoration">
                             <span class="line"></span><span class="dot"></span><span class="line"></span>
                         </div>
-                    </button>
+                    </a>
 
-                    <button class="action-btn" onclick="openPDF('Dinner Buffet.pdf', 'In-Room Dining')">
+                    <a href="Dinner%20Buffet.pdf" class="action-btn" data-label="IN-ROOM DINING">
                         <div class="icon-circle">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 18h18"/>
@@ -622,7 +626,7 @@
                         <div class="btn-decoration">
                             <span class="line"></span><span class="dot"></span><span class="line"></span>
                         </div>
-                    </button>
+                    </a>
                 </div>
 
                 <div class="footer">
@@ -642,29 +646,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- PDF Overlay -->
-    <div class="pdf-overlay" id="pdfOverlay">
-        <div class="pdf-overlay-bg"></div>
-        <div class="pdf-toolbar">
-            <span class="pdf-title" id="pdfTitle">Document</span>
-            <button class="pdf-close-btn" onclick="closePDF()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M19 12H5M12 5l-7 7 7 7"/>
-                </svg>
-                BACK
-            </button>
-        </div>
-        <div class="pdf-viewer" id="pdfViewerContainer">
-            <div class="pdf-loading" id="pdfLoading">
-                <div class="spinner"></div>
-                <p>Loading PDF...</p>
-            </div>
-            <object id="pdfObject" data="" type="application/pdf" width="100%" height="100%">
-                <iframe id="pdfFrame" src="" style="width:100%;height:100%;border:none;" onload="document.getElementById('pdfLoading').style.display='none'"></iframe>
-            </object>
         </div>
     </div>
 
@@ -750,83 +731,20 @@
         }
         animateLeaves();
 
-        // PDF Open/Close with Animation
+        // PDF buttons are now direct anchor links - no overlay needed
         const mainCard = document.getElementById('mainCard');
-        const pdfOverlay = document.getElementById('pdfOverlay');
-        const pdfObject = document.getElementById('pdfObject');
-        const pdfFrame = document.getElementById('pdfFrame');
-        const pdfTitle = document.getElementById('pdfTitle');
-        const pdfLoading = document.getElementById('pdfLoading');
-        let isAnimating = false;
 
-        function openPDF(fileName, title) {
-            if (isAnimating) return;
-            isAnimating = true;
-
-            event.currentTarget.classList.add('pressed');
-            setTimeout(() => event.currentTarget.classList.remove('pressed'), 300);
-
-            pdfTitle.textContent = title;
-            pdfLoading.style.display = 'block';
-
-            // Set PDF in object tag (works directly on mobile without download prompt)
-            pdfObject.data = fileName;
-            // Also set iframe fallback
-            pdfFrame.src = fileName;
-
-            // Hide loading after a delay
-            setTimeout(() => { pdfLoading.style.display = 'none'; }, 1500);
-
-            // Card exit animation
-            mainCard.classList.add('flipping');
-
-            setTimeout(() => {
-                pdfOverlay.classList.add('active');
-            }, 350);
-
-            setTimeout(() => {
-                mainCard.style.display = 'none';
-                mainCard.classList.remove('flipping');
-                isAnimating = false;
-            }, 600);
-        }
-
-        function closePDF() {
-            if (isAnimating) return;
-            isAnimating = true;
-
-            pdfOverlay.classList.add('closing');
-            pdfObject.data = '';
-            pdfFrame.src = '';
-
-            setTimeout(() => {
-                pdfOverlay.classList.remove('active', 'closing');
-
-                mainCard.style.display = 'block';
-                mainCard.classList.add('unflipping');
-
+        // Add subtle card animation on button click
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.add('pressed');
+                mainCard.classList.add('flipping');
+                setTimeout(() => btn.classList.remove('pressed'), 300);
                 setTimeout(() => {
-                    mainCard.classList.remove('unflipping');
-                    isAnimating = false;
-                }, 650);
-            }, 400);
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closePDF();
+                    mainCard.classList.remove('flipping');
+                }, 600);
+            });
         });
-
-        // Swipe down to close PDF on mobile
-        let touchStartY = 0;
-        const pdfViewer = document.querySelector('.pdf-viewer');
-        pdfViewer.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-        pdfViewer.addEventListener('touchend', (e) => {
-            const touchEndY = e.changedTouches[0].clientY;
-            const diff = touchEndY - touchStartY;
-            if (diff > 100 && !isAnimating) closePDF();
-        }, { passive: true });
     </script>
 </body>
 </html>
