@@ -1,7 +1,7 @@
 $listener = New-Object System.Net.HttpListener
-$listener.Prefixes.Add('http://localhost:3000/')
+$listener.Prefixes.Add('http://localhost:3001/')
 $listener.Start()
-Write-Host "Server running at http://localhost:3000"
+Write-Host "Server running at http://localhost:3001"
 Write-Host "Press Ctrl+C to stop"
 
 $root = 'C:\Users\hardik.rangani\Downloads\fern-website'
