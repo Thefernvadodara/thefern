@@ -657,12 +657,14 @@
                 BACK
             </button>
         </div>
-        <div class="pdf-viewer">
+        <div class="pdf-viewer" id="pdfViewerContainer">
             <div class="pdf-loading" id="pdfLoading">
                 <div class="spinner"></div>
                 <p>Loading PDF...</p>
             </div>
-            <iframe id="pdfFrame" src="" onload="document.getElementById('pdfLoading').style.display='none'"></iframe>
+            <object id="pdfObject" data="" type="application/pdf" width="100%" height="100%">
+                <iframe id="pdfFrame" src="" style="width:100%;height:100%;border:none;" onload="document.getElementById('pdfLoading').style.display='none'"></iframe>
+            </object>
         </div>
     </div>
 
@@ -748,9 +750,10 @@
         }
         animateLeaves();
 
-        // PDF Open/Close with Flip Animation
+        // PDF Open/Close with Animation
         const mainCard = document.getElementById('mainCard');
         const pdfOverlay = document.getElementById('pdfOverlay');
+        const pdfObject = document.getElementById('pdfObject');
         const pdfFrame = document.getElementById('pdfFrame');
         const pdfTitle = document.getElementById('pdfTitle');
         const pdfLoading = document.getElementById('pdfLoading');
@@ -765,17 +768,22 @@
 
             pdfTitle.textContent = title;
             pdfLoading.style.display = 'block';
+
+            // Set PDF in object tag (works directly on mobile without download prompt)
+            pdfObject.data = fileName;
+            // Also set iframe fallback
             pdfFrame.src = fileName;
+
+            // Hide loading after a delay
+            setTimeout(() => { pdfLoading.style.display = 'none'; }, 1500);
 
             // Card exit animation
             mainCard.classList.add('flipping');
 
-            // Show PDF overlay after card starts exiting
             setTimeout(() => {
                 pdfOverlay.classList.add('active');
             }, 350);
 
-            // Hide card after animation completes
             setTimeout(() => {
                 mainCard.style.display = 'none';
                 mainCard.classList.remove('flipping');
@@ -787,14 +795,13 @@
             if (isAnimating) return;
             isAnimating = true;
 
-            // Close overlay with slide down
             pdfOverlay.classList.add('closing');
+            pdfObject.data = '';
             pdfFrame.src = '';
 
             setTimeout(() => {
                 pdfOverlay.classList.remove('active', 'closing');
 
-                // Card enters back
                 mainCard.style.display = 'block';
                 mainCard.classList.add('unflipping');
 

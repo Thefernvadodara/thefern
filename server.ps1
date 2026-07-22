@@ -21,10 +21,15 @@ while ($listener.IsListening) {
             '.js'   {'application/javascript'}
             '.png'  {'image/png'}
             '.jpg'  {'image/jpeg'}
+            '.jpeg' {'image/jpeg'}
             '.pdf'  {'application/pdf'}
             default {'application/octet-stream'}
         }
         $response.ContentType = $mime
+        # Force PDFs to display inline (not download)
+        if ($ext -eq '.pdf') {
+            $response.Headers.Add('Content-Disposition', 'inline')
+        }
         $bytes = [System.IO.File]::ReadAllBytes($filePath)
         $response.ContentLength64 = $bytes.Length
         $response.OutputStream.Write($bytes, 0, $bytes.Length)
